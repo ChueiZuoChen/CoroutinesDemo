@@ -11,14 +11,46 @@ import kotlinx.coroutines.Dispatchers.Main
 
 class MainActivity : AppCompatActivity() {
     private var count = 0
-
+    lateinit var job1: Job
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        job1 = CoroutineScope(Dispatchers.Main).launch {
+            downloadData()
+        }
+        button1.setOnClickListener {
+            job1.cancel()
+        }
+        button2.setOnClickListener {
 
+            when {
+                job1.isActive -> {
+                    textView.text = "Active"
+                }
+                job1.isCancelled -> {
+                    textView.text = "Canceld"
+                }
+                job1.isCompleted -> {
+                    textView.text = "Completed"
+                }
+            }
+        }
 
+//        Async1()
+//        CoroutineScope1()
+    }
 
+    private suspend fun downloadData(){
+        withContext(IO){
+            repeat(30){
+                delay(1000)
+                Log.i("MyTage","repeating $it")
+            }
+        }
+    }
+
+    private fun Async1() {
         CoroutineScope(Main).launch {
             Log.i("MyTag", "Calculation started...")
 
@@ -29,20 +61,23 @@ class MainActivity : AppCompatActivity() {
                 getStock2()
             }
             val total = stock1.await() + stock2.await()
-            Toast.makeText(applicationContext,"Total is $total",Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Total is $total", Toast.LENGTH_LONG).show()
             Log.i("MyTag", "Total is $total")
 
         }
-//        btnCount.setOnClickListener {
-//            tvCount.text = count++.toString()
-//        }
-//        btnDownloadUserData.setOnClickListener {
-//
-//            CoroutineScope(Dispatchers.IO).launch {
-//                downloadUserData()
-//            }
-//
-//        }
+    }
+
+    private fun CoroutineScope1() {
+        button1.setOnClickListener {
+            textView.text = count++.toString()
+        }
+        button2.setOnClickListener {
+
+            CoroutineScope(IO).launch {
+                downloadUserData()
+            }
+
+        }
     }
 
     private suspend fun downloadUserData() {
